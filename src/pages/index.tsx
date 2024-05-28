@@ -1,33 +1,44 @@
 import Head from "next/head";
-import { useEffect, useState } from "react";
-import { getEventos, Evento } from '../pages/api/api';
+import axios from "axios";
+import { GetStaticProps } from "next";
 
-export default function Home() {
-  const [eventos, setEventos] = useState<Evento[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Define os tipos de dados que você espera receber da API
+interface Blog {
+  texto: string;
+  imagem: string;
+}
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await getEventos();
-        console.log('Dados dos eventos:', data);  // Adiciona o console.log
-        setEventos(data);
-      } catch (error: any) {
-        const errorMessage = error.response ? error.response.data : error.message;
-        setError(`Erro ao carregar eventos: ${errorMessage} Uhuh`);
-      } finally {
-        setLoading(false);
-      }
-    };
+interface EventData {
+  evento: number;
+  titulo: string;
+  endereco: string;
+  data: string;
+  horario: string;
+  cor_principal: string;
+  cor_secundaria: string;
+  link_lista: string;
+  capa: string;
+  blog: Blog[];
+}
 
-    fetchData();
-  }, []);
+// Adicione o tipo de props
+interface HomeProps {
+  eventData: EventData | null;
+}
 
-  if (loading) return <p>Carregando...</p>;
-  if (error) return <p>{error}</p>;
+export default function Home({ eventData }: HomeProps) {
+  if (!eventData) {
+    return <div>Carregando...</div>; // Ou alguma outra mensagem de erro
+  }
 
-  const tituloEvento = eventos.length > 0 ? eventos[0].titulo : 'Título do Evento';
+  // Parse e formate a data
+  const parsedDate = new Date(eventData.data);
+  const formattedDate = new Intl.DateTimeFormat('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(parsedDate);
 
   return (
     <>
@@ -38,69 +49,70 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <section className="banner-main">
-          <h1>Alice 4 anos</h1>
+        <section className="banner-main" style={{ backgroundColor: eventData.cor_principal }}>
+          <h1>{eventData.titulo}</h1>
           <div id="box-btn">            
-            <h2>{tituloEvento}</h2>  {/* Substitua pelo título do evento */}
+            <h2>{formattedDate}</h2> {/* Data formatada */}
             <button type="button">Confirmar Presença</button>
           </div>
         </section>
         <section className="data-event">
           <div>
             <h2>Local</h2>
-            <p>Lorem</p>
+            <p>{eventData.endereco}</p>
           </div>
           <div>
-            <h2>Horario</h2>
-            <p>Lorem</p>
+            <h2>Horário</h2>
+            <p>{eventData.horario}</p>
           </div>
           <div>
             <h2>Data</h2>
-            <p>Lorem</p>
+            <p>{formattedDate}</p> {/* Data formatada */}
           </div>
           <div>
             <h2>Fone</h2>
-            <p>Lorem</p>
+            <p>(Coloque o número do telefone aqui se houver)</p>
           </div>
           <div>
             <h2>Mapa</h2>
-            <p>Lorem</p>
+            <p><a href={eventData.capa} target="_blank" rel="noopener noreferrer">Ver mapa</a></p>
           </div>
         </section>
         <section className="news-events">
-          <h2>Noticias</h2>
+          <h2>Notícias</h2>
           <div className="news">
-            <div>
-              <img src="" alt="" />
-              <h3>Titulo</h3>
-              <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Animi perspiciatis soluta 
-                commodi nihil quo tempora placeat blanditiis quod. Fugit officiis magni, molestias 
-                dolorem tempore voluptatum natus vero atque recusandae nesciunt.</p>
-            </div>
-            <div>
-              <img src="" alt="" />
-              <h3>Titulo</h3>
-              <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Animi perspiciatis soluta 
-                commodi nihil quo tempora placeat blanditiis quod. Fugit officiis magni, molestias 
-                dolorem tempore voluptatum natus vero atque recusandae nesciunt.</p>
-            </div>
-            <div>
-              <img src="" alt="" />
-              <h3>Titulo</h3>
-              <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Animi perspiciatis soluta 
-                commodi nihil quo tempora placeat blanditiis quod. Fugit officiis magni, molestias 
-                dolorem tempore voluptatum natus vero atque recusandae nesciunt.</p>
-            </div>
-            <div>
-              <img src="" alt="" />
-              <h3>Titulo</h3>
-              <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Animi perspiciatis soluta 
-                commodi nihil quo tempora placeat blanditiis quod. Fugit officiis magni, molestias 
-                dolorem tempore voluptatum natus vero atque recusandae nesciunt.</p>
-            </div>
+            {eventData.blog.map((newsItem, index) => (
+              <div key={index}>
+                <img src={newsItem.imagem} alt={newsItem.texto.substring(0, 30)} />
+                <h3>{newsItem.texto.substring(0, 30)}...</h3>
+                <p>{newsItem.texto}</p>
+              </div>
+            ))}
           </div>
         </section>
       </main>
     </>
   );
+}
+
+// Função para buscar os dados da API em tempo de build
+export const getStaticProps: GetStaticProps = async () => {
+  try {
+    const response = await axios.get('https://evento.tecnodam.com.br/Evento/evento.rule?sys=EVT'); // URL do seu endpoint da API
+    console.log(response.data); // Adicione esta linha
+    const eventData: EventData = response.data;
+
+    return {
+      props: {
+        eventData,
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      props: {
+        eventData: null,
+      },
+    };
+  }
 }

@@ -1,28 +1,18 @@
-import axios, { AxiosInstance } from 'axios';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
 
-export interface Evento {
-  evento: number;
-  titulo: string;
-  endereco: string;
-  data: string;
-  horario: string;
-  cor_principal: string;
-  cor_secundaria: string;
-  link_lista: string;
-  capa: string;
-}
-
-const apiClient: AxiosInstance = axios.create({
-  baseURL: 'https://sistema.tecnodam.com.br',
-  timeout: 100000,
-});
-
-export const getEventos = async (): Promise<Evento[]> => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const response = await apiClient.get<Evento[]>('/Evento/evento.rule?sys=EVT');
-    return response.data;
-  } catch (error: any) {
-    console.error('Erro ao buscar eventos:', error.response ? error.response.data : error.message);
-    throw error;
+    // Faça a requisição à API externa
+    const response = await axios.get('https://evento.tecnodam.com.br/Evento/evento.rule?sys=EVT');
+
+    // Retorne os dados recebidos da API externa na resposta da API Next.js
+    res.status(200).json(response.data);
+  } catch (error) {
+    // Trate erros adequadamente
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao fazer a requisição à API externa' });
   }
 };
+
+export default handler;
