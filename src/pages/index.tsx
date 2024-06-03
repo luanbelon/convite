@@ -2,6 +2,7 @@ import Head from "next/head";
 import axios from "axios";
 import { GetStaticProps } from "next";
 
+
 // Define os tipos de dados que você espera receber da API
 interface Blog {
   texto: string;
@@ -49,14 +50,14 @@ export default function Home({ eventData }: HomeProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <section className="banner-main" style={{ backgroundColor: eventData.cor_principal }}>
+        <section className="banner-main" style={{ backgroundImage: `url(${eventData.capa})` }}>
           <h1>{eventData.titulo}</h1>
           <div id="box-btn">            
             <h2>{formattedDate}</h2> {/* Data formatada */}
             <button type="button">Confirmar Presença</button>
           </div>
         </section>
-        <section className="data-event">
+        <section className="data-event" style={{ backgroundColor: eventData.cor_principal }}>
           <div>
             <h2>Local</h2>
             <p>{eventData.endereco}</p>
@@ -82,7 +83,7 @@ export default function Home({ eventData }: HomeProps) {
           <h2>Notícias</h2>
           <div className="news">
             {eventData.blog.map((newsItem, index) => (
-              <div key={index}>
+              <div key={index} className="news-item">
                 <img src={newsItem.imagem} alt={newsItem.texto.substring(0, 30)} />
                 <h3>{newsItem.texto.substring(0, 30)}...</h3>
                 <p>{newsItem.texto}</p>
