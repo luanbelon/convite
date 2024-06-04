@@ -11,6 +11,10 @@ body {
   overflow-x: hidden;
 }
 
+main {
+  overflow: hidden;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
@@ -49,7 +53,9 @@ a {
   border: none;
   padding: 1rem 3rem;
   font-size: 1.4rem;
-  border-radius: 0.3rem;
+  font-weight: 600;
+  border-radius: 100px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
 }
 
 .data-event {
@@ -94,4 +100,8 @@ a {
   height: 18rem;
   -o-object-fit: cover;
      object-fit: cover;
+}
+
+button.btn {
+  border: none;
 }/*# sourceMappingURL=styles.css.map */

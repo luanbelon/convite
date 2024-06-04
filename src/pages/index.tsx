@@ -1,7 +1,8 @@
 import Head from "next/head";
 import axios from "axios";
 import { GetStaticProps } from "next";
-
+import { useState } from "react";
+import ConfirmModal from '../components/ConfirmModal';
 
 // Define os tipos de dados que você espera receber da API
 interface Blog {
@@ -27,7 +28,17 @@ interface HomeProps {
   eventData: EventData | null;
 }
 
-export default function Home({ eventData }: HomeProps) {
+const Home: React.FC<HomeProps> = ({ eventData }) => {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
   if (!eventData) {
     return <div>Carregando...</div>; // Ou alguma outra mensagem de erro
   }
@@ -41,6 +52,17 @@ export default function Home({ eventData }: HomeProps) {
     year: 'numeric',
   }).format(parsedDate);
 
+  // Converter a cor principal de hexadecimal para rgba com 50% de transparência
+  const primaryColorRgba = hexToRgba(eventData.cor_principal, 0.3);
+
+  // Função para converter cor hexadecimal para rgba
+  function hexToRgba(hex: string, alpha: number) {
+    const r = parseInt(hex.substring(1, 3), 16);
+    const g = parseInt(hex.substring(3, 5), 16);
+    const b = parseInt(hex.substring(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
   return (
     <>
       <Head>
@@ -50,11 +72,22 @@ export default function Home({ eventData }: HomeProps) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main>
-        <section className="banner-main" style={{ backgroundImage: `url(${eventData.capa})` }}>
+        <section className="banner-main" style={{
+            backgroundImage: `linear-gradient(to bottom, ${primaryColorRgba}, rgba(255, 255, 255, .5)), url(${eventData.capa})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}>
           <h1>{eventData.titulo}</h1>
           <div id="box-btn">            
             <h2>{formattedDate}</h2> {/* Data formatada */}
-            <button type="button">Confirmar Presença</button>
+            <button
+              type="button"
+              className="btn-confirmar"
+              onClick={handleOpenModal}
+              style={{ color: eventData.cor_principal }}
+            >
+              Confirmar Presença
+            </button>
           </div>
         </section>
         <section className="data-event" style={{ backgroundColor: eventData.cor_principal }}>
@@ -91,10 +124,11 @@ export default function Home({ eventData }: HomeProps) {
             ))}
           </div>
         </section>
+        <ConfirmModal show={showModal} handleClose={handleCloseModal} corPrincipal={eventData.cor_principal} eventoId={eventData.evento} />
       </main>
     </>
   );
-}
+};
 
 // Função para buscar os dados da API em tempo de build
 export const getStaticProps: GetStaticProps = async () => {
@@ -116,4 +150,6 @@ export const getStaticProps: GetStaticProps = async () => {
       },
     };
   }
-}
+};
+
+export default Home;
